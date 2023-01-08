@@ -1,0 +1,15 @@
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\bin\Debug\net6.0\JHA_Challenge.exe
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\bin\Debug\net6.0\JHA_Challenge.deps.json
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\bin\Debug\net6.0\JHA_Challenge.runtimeconfig.json
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\bin\Debug\net6.0\JHA_Challenge.dll
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\bin\Debug\net6.0\JHA_Challenge.pdb
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\JHA_Challenge.csproj.AssemblyReference.cache
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\JHA_Challenge.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\JHA_Challenge.AssemblyInfoInputs.cache
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\JHA_Challenge.AssemblyInfo.cs
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\JHA_Challenge.csproj.CoreCompileInputs.cache
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\JHA_Challenge.dll
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\refint\JHA_Challenge.dll
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\JHA_Challenge.pdb
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\JHA_Challenge.genruntimeconfig.cache
+C:\Users\geeda\source\repos\JHA_Challenge\JHA_Challenge\obj\Debug\net6.0\ref\JHA_Challenge.dll
