@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using JHA_Challenge.Models.Entity;
+﻿using JHA_Challenge.Models.Entity;
 
 namespace JHA_Challenge.Models
 {
