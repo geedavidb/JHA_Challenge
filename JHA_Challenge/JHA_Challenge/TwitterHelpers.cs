@@ -51,9 +51,6 @@ namespace JHA_Challenge
                     var aggregateCount = 0;
                     foreach (var hashTag in tweetToParse.Entities.Hashtags)
                     {
-                        //To-Do
-                        //Add in a guard clause to ignore nonstandard characters?
-                        //Something is causing the output to display "?" in the console, maybe Japanese characters or something?
                         if (!hashTags.TryGetValue(hashTag.Tag, out aggregateCount))
                         {
                             hashTags.TryAdd(hashTag.Tag, 1);

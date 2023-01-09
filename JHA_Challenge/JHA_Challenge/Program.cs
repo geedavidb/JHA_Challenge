@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
 using System.Text.Json;
 
+Console.OutputEncoding = System.Text.Encoding.UTF8;
 Console.WriteLine("Sample Stream Tweet Characteristics");
 
 const string APP_SETTINGS_FILE = "appSettings.json";
@@ -49,7 +50,7 @@ void PrintResults()
         var topHashTags = TwitterHelpers.GetTopHashtags(numberOfTopHashtagsToDisplay, hashTags);
         TwitterHelpers.WriteTopHashtagsToConsole(numberOfTopHashtagsToDisplay, topHashTags);
 
-        Console.WriteLine($"Tweet Count is: {cq.Count}");
+        //Console.WriteLine($"Queued Tweet Count is: {cq.Count}");
         Console.WriteLine($"Hashtag Count is: {hashTags.Count}");
         Console.WriteLine($"Processed Tweets Count is: {processedTweets}");
 
