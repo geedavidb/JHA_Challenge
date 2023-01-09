@@ -1,124 +1,85 @@
 ﻿// See https://aka.ms/new-console-template for more information
+using JHA_Challenge;
 using JHA_Challenge.Models;
+using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
 using System.Text.Json;
 
 Console.WriteLine("Sample Stream Tweet Characteristics");
 
-//----Done-----
-//Connect to Twitter
-//Read a Tweet (does this happen on its own?)
-//Get Hashtags
-//Parse tweets from JSON into objects
+const string APP_SETTINGS_FILE = "appSettings.json";
+const string TWITTER_BEARER_TOKEN_KEY = "TwitterBearerToken";
+const string RESULTS_PRINTING_INTERVAL_KEY = "ResultsPrintingIntervalInMilliseconds";
+const string HASHTAG_NUMBER_OF_TOP_TO_DISPLAY_KEY = "Hashtag_NumberToDisplay";
+
+var configurationBuilder = new ConfigurationBuilder().AddJsonFile(APP_SETTINGS_FILE);
+IConfiguration config = configurationBuilder.Build();
+
+int resultIntervalInMs = Convert.ToInt32(config[RESULTS_PRINTING_INTERVAL_KEY]);
+int numberOfTopHashtagsToDisplay = Convert.ToInt32(config[HASHTAG_NUMBER_OF_TOP_TO_DISPLAY_KEY]);
 
 //----To Do-----
-//Store the tweet in memory somehow (add to a message queue?)
-    //unit test for reading the stream?
-//What if we add faster than we can remove?  Do we have a cap on the message queue size?
-//pull the tweets from the queue
-    //create some kind of hashtag hashmap at this point?  unit test
-//put them in some data structure and remove them from the queue
-    //repository pattern so we could swap in a database or something?
-//run some numbers
-    //number of tweets
-    //top ten hashtags
-        //convert the hashmap to a list so I can sort it and display it?  unit test
-        //tag, count
-//Don't block new tweets from being added
+//Do we have a cap on the message queue size?
+//repository pattern so we could swap in a database or something?
 
-//How do I make this more abstract?  Some interface with generic methods for messaging queues?
+//Could replace this with any messaging system, like RabbitMQ, etc.
 ConcurrentQueue<Tweet> cq = new ConcurrentQueue<Tweet>();
 ConcurrentDictionary<string, int> hashTags = new ConcurrentDictionary<string, int>();
 
-//What other stats besides hashtags should I include?
+//Other Possible Stats:
+//Number/Percentage of tweets with links
+//Number/Percentage of tweets with hashtags
+//Average number of hashtags per tweet
 int processedTweets = 0;
 
-//Right now print results is also tabulating the hashtag stuff, and that could go in a separate function
-//"thread1" isn't very descriptive.
-Thread thread1 = new Thread(PrintResults);
-thread1.Start();
 
-//This should be abstracted somehow so that it isn't so tightly coupled to the queue object
-void PrintResults () {
+
+/*------------------------------------------------------
+ * Kick off a thread to handle the results reporting
+ *----------------------------------------------------*/
+Thread resultsReportingThread = new Thread(PrintResults);
+resultsReportingThread.Start();
+
+void PrintResults()
+{
     while (true)
     {
-        //This wait time should be configurable somewhere
-        Task.Delay(5000).Wait();
+        Task.Delay(resultIntervalInMs).Wait();
 
-
-        var hashTagList = hashTags.OrderByDescending(x => x.Value).ToList();
-        
-        Console.WriteLine($"Rank\tCount\tHashtag");
-        if (hashTagList.Count >= 10)
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                Console.WriteLine($"{i + 1}\t{hashTagList[i].Value}\t{hashTagList[i].Key}");
-            }
-        }
-        Console.WriteLine();
+        var topHashTags = TwitterHelpers.GetTopHashtags(numberOfTopHashtagsToDisplay, hashTags);
+        TwitterHelpers.WriteTopHashtagsToConsole(numberOfTopHashtagsToDisplay, topHashTags);
 
         Console.WriteLine($"Tweet Count is: {cq.Count}");
         Console.WriteLine($"Hashtag Count is: {hashTags.Count}");
         Console.WriteLine($"Processed Tweets Count is: {processedTweets}");
-        
+
         Console.WriteLine();
     }
 }
 
-//This should be stored in appSettings or something
-string bearerToken = "AAAAAAAAAAAAAAAAAAAAAO1VlAEAAAAAuiRHAOr30yDunXJJigOqeSy7%2Fjw%3DDZHccmxQKNYTFWyFVz6uWs9qNSVi7af6BNmpEdpaxCJHxYqlSn";
-
-
-//----All this code could probably be in a Twitter Http Client class of some sort----
-var httpClient = new HttpClient();
-//The base address should be separated from the rest of the endpoint if we wanted to be more flexible about it
-//The base address and endpoint address should be in appSettings, maybe
-httpClient.BaseAddress = new Uri("https://api.twitter.com/2/tweets/sample/stream?tweet.fields=entities");
-httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + bearerToken);
-
-var httpRequest = new HttpRequestMessage(HttpMethod.Get, httpClient.BaseAddress);
-var _options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-
-
-
-
-//// An action to consume the ConcurrentQueue.
-///This could totally be some separate subscriber class or interface
+/*------------------------------------------------------
+ * An action to consume the ConcurrentQueue
+ *----------------------------------------------------*/
 Action action = () =>
 {
     Tweet localTweet;
 
     while (cq.TryDequeue(out localTweet))
     {
-        if (localTweet.Entities.Hashtags != null)
-        {
-            var outCount = 0;
-            foreach (var hashTag in localTweet.Entities.Hashtags)
-            {
-                if (!hashTags.TryGetValue(hashTag.Tag, out outCount))
-                {
-                    hashTags.TryAdd(hashTag.Tag, 1);
-                }
-                else
-                {
-                    outCount++;
-                    hashTags[hashTag.Tag] = outCount;
-                }
-            }
-        }
+        TwitterHelpers.AggregateHashtags(hashTags, localTweet);
         Interlocked.Add(ref processedTweets, 1);
     }
 };
 
 
-//This is the actual "main" code of the app
 try
 {
+    string bearerToken = config[TWITTER_BEARER_TOKEN_KEY];
+    var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+    
+    HttpClient httpClient = TwitterHelpers.CreateTwitterClient(bearerToken);
     var stream = await httpClient.GetStreamAsync(httpClient.BaseAddress);
 
-    //There is no error handling around this
-    //What if the stream goes down or something?
     using (var streamReader = new StreamReader(stream))
     {
         while (!streamReader.EndOfStream)
@@ -128,14 +89,22 @@ try
             {
                 continue;
             }
-            var currentRawData = JsonSerializer.Deserialize<RawResponse>(currentLine, _options);
-            var currentTweet = JsonSerializer.Deserialize<Tweet>(currentRawData.Data, _options);
+            var currentRawData = JsonSerializer.Deserialize<RawResponse>(currentLine, jsonOptions);
+            var currentTweet = JsonSerializer.Deserialize<Tweet>(currentRawData.Data, jsonOptions);
             cq.Enqueue(currentTweet);
+
+            //This could be used to call the action on multiple threads if needed, in case the reporting can't keep up with the enqueueing
             Parallel.Invoke(action);
         }
     }
 }
 catch (Exception ex)
 {
-
+    Console.WriteLine(ex.ToString());
 }
+
+
+
+
+
+
