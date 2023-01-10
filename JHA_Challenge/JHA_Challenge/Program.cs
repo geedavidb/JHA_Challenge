@@ -1,5 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-using JHA_Challenge;
+﻿using JHA_Challenge;
 using JHA_Challenge.Models;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Concurrent;
