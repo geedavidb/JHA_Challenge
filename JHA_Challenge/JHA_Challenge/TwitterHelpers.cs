@@ -7,12 +7,14 @@ namespace JHA_Challenge
     {
         public static List<KeyValuePair<string, int>> GetTopHashtags(int hashTagsToDisplay, ConcurrentDictionary<string, int> hashTags)
         {
-            return hashTags.OrderByDescending(x => x.Value).Take(hashTagsToDisplay).ToList();
+            if (hashTagsToDisplay == 0) throw new ArgumentException();
+            if (hashTags == null) throw new ArgumentNullException();
+            return hashTags.OrderByDescending(x => x.Value).Take(Math.Min(hashTagsToDisplay, hashTags.Count)).ToList();
         }
 
         public static HttpClient CreateTwitterClient(string bearerToken)
         {
-            //----All this code could probably be in a Twitter Http Client class of some sort----
+            if (bearerToken == null) throw new ArgumentNullException();
             var httpClient = new HttpClient();
 
             //The base address could be separated from the rest of the endpoint if we wanted to be more flexible about it
@@ -20,12 +22,14 @@ namespace JHA_Challenge
             httpClient.BaseAddress = new Uri("https://api.twitter.com/2/tweets/sample/stream?tweet.fields=entities");
             httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + bearerToken);
 
-            var httpRequest = new HttpRequestMessage(HttpMethod.Get, httpClient.BaseAddress);
+            //var httpRequest = new HttpRequestMessage(HttpMethod.Get, httpClient.BaseAddress);
             return httpClient;
         }
 
         public static void WriteTopHashtagsToConsole(int numberOfTopHashtagsToDisplay, List<KeyValuePair<string, int>> topHashTags)
         {
+            if(numberOfTopHashtagsToDisplay == 0) throw new ArgumentException();
+            if(topHashTags == null) throw new ArgumentNullException();
             Console.WriteLine($"Rank\tCount\tHashtag");
             if (topHashTags.Count >= numberOfTopHashtagsToDisplay)
             {
@@ -39,6 +43,8 @@ namespace JHA_Challenge
 
         public static bool AggregateHashtags(ConcurrentDictionary<string, int> hashTags, Tweet tweetToParse)
         {
+            if (tweetToParse == null) throw new ArgumentNullException();
+            if (hashTags == null) throw new ArgumentNullException();
             try
             {
                 if (tweetToParse.Entities.Hashtags != null)

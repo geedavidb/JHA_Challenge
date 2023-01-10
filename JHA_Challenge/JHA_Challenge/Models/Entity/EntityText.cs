@@ -2,6 +2,6 @@
 {
     public class EntityText : AbstractEntity
     {
-        public string Tag { get; init; }
+        public string Tag { get; set; }
     }
 }
